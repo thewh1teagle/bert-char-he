@@ -1,6 +1,6 @@
 # bert-char-he
 
-Hebrew character-level BERT pretrained with MLM.
+Hebrew character-level ModernBERT (~20M params) pretrained with MLM.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
