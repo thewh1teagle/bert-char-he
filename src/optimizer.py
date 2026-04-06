@@ -5,9 +5,6 @@ from __future__ import annotations
 import math
 
 import torch
-from model import NeoBERTForMLM
-
-
 def cosine_lr_lambda(step: int, warmup_steps: int, total_steps: int) -> float:
     if step < warmup_steps:
         return step / max(1, warmup_steps)
@@ -15,7 +12,7 @@ def cosine_lr_lambda(step: int, warmup_steps: int, total_steps: int) -> float:
     return 0.5 * (1.0 + math.cos(math.pi * progress))
 
 
-def build_optimizer(model: NeoBERTForMLM, lr: float, weight_decay: float) -> torch.optim.AdamW:
+def build_optimizer(model: torch.nn.Module, lr: float, weight_decay: float) -> torch.optim.AdamW:
     no_decay = {"bias", "LayerNorm.weight", "layer_norm.weight", "norm.weight"}
     return torch.optim.AdamW([
         {

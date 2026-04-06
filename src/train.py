@@ -28,9 +28,9 @@ from checkpoint import save_checkpoint, resume_step
 from config import parse_args
 from data import make_dataloaders
 from eval import evaluate
-from model import NeoBERTForMLM
+from model import build_model
 from optimizer import build_optimizer, build_scheduler
-from tokenization import build_tokenizer, build_vocab
+from tokenization import build_tokenizer
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
 
     train_loader, eval_loader = make_dataloaders(args, tokenizer)
 
-    model = NeoBERTForMLM(vocab_size=len(build_vocab()), flash_attention=args.flash_attention)
+    model = build_model()
 
     if args.init_from_checkpoint:
         from safetensors.torch import load_file
@@ -90,9 +90,9 @@ def main():
             with accelerator.autocast():
                 out = model(**batch)
 
-            scaled_loss = out["loss"] / args.gradient_accumulation_steps
+            scaled_loss = out.loss / args.gradient_accumulation_steps
             accelerator.backward(scaled_loss)
-            epoch_loss_sum += out["loss"].item()
+            epoch_loss_sum += out.loss.item()
             epoch_steps += 1
             global_step += 1
 

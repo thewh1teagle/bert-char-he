@@ -10,3 +10,5 @@ wheels/
 .venv
 
 *.txt
+outputs/
+*.7z

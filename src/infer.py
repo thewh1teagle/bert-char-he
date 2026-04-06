@@ -15,19 +15,20 @@ import torch
 from safetensors.torch import load_file
 from transformers import PreTrainedTokenizerFast
 
-from model import NeoBERTForMLM
-from tokenization import build_tokenizer, build_vocab
+from model import build_model
+from tokenization import build_tokenizer
 
 
-def load_model(checkpoint: str, vocab_size: int) -> NeoBERTForMLM:
-    model = NeoBERTForMLM(vocab_size=vocab_size)
+def load_model(checkpoint: str) -> "ModernBertForMaskedLM":
+    from transformers import ModernBertForMaskedLM
+    model = build_model()
     state = load_file(str(Path(checkpoint) / "model.safetensors"), device="cpu")
     model.load_state_dict(state)
     model.eval()
     return model
 
 
-def run(model: NeoBERTForMLM, tokenizer: PreTrainedTokenizerFast, text: str, device: torch.device) -> None:
+def run(model, tokenizer: PreTrainedTokenizerFast, text: str, device: torch.device) -> None:
     enc = tokenizer(text, return_tensors="pt")
     input_ids = enc["input_ids"].to(device)
     attention_mask = enc["attention_mask"].to(device)
@@ -35,7 +36,7 @@ def run(model: NeoBERTForMLM, tokenizer: PreTrainedTokenizerFast, text: str, dev
     with torch.no_grad():
         out = model(input_ids=input_ids, attention_mask=attention_mask)
 
-    preds = out["logits"].argmax(-1)
+    preds = out.logits.argmax(-1)
     # Replace [MASK] tokens with predictions
     mask_id = tokenizer.mask_token_id
     result_ids = input_ids.clone()
@@ -62,9 +63,8 @@ def main():
         mask_token="[MASK]",
     )
 
-    vocab_size = len(build_vocab())
     device = torch.device(args.device)
-    model = load_model(args.checkpoint, vocab_size).to(device)
+    model = load_model(args.checkpoint).to(device)
 
     if args.text:
         run(model, tokenizer, args.text, device)
