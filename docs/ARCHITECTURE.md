@@ -22,26 +22,4 @@ Built in-memory from `src/tokenization.py` — no external file needed.
 
 ## Training
 
-Standard BERT-style MLM: 15% of characters are randomly masked, the model predicts the original character. Masking is applied on-the-fly by `DataCollatorForLanguageModeling`.
-
-```
-raw .txt (one sentence per line)
-  → split_dataset.sh       train/val split
-  → data.py                tokenize + cache to Arrow (once)
-  → DataCollatorForMLM     15% random masking per batch
-  → train.py               training loop
-```
-
-## Data Pipeline
-
-- Input: plain `.txt` file, one Hebrew sentence per line
-- Tokenized once on first run, cached to Arrow for fast subsequent loads
-- Masking is random per batch — different masks each epoch
-
-## Using the Pretrained Encoder
-
-Load encoder weights into a downstream model:
-
-```bash
-uv run src/train.py --init-from-checkpoint outputs/neobert-he/checkpoint-XXXX --init-weights-only ...
-```
+See [TRAINING.md](TRAINING.md).
