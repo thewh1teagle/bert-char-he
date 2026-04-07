@@ -13,6 +13,7 @@ dependencies = [
     "torch>=2.11.0",
     "tqdm>=4.67.3",
     "transformers[torch]>=5.5.0",
+    "xformers>=0.0.35",
 ]
 
 [project.optional-dependencies]

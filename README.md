@@ -16,20 +16,29 @@ Hebrew character-level BERT (~20M params) pretrained with MLM on raw unvocalized
 from transformers import AutoModel, AutoTokenizer
 
 tokenizer = AutoTokenizer.from_pretrained("thewh1teagle/bert-char-he")
-model = AutoModel.from_pretrained("thewh1teagle/bert-char-he")
+model = AutoModel.from_pretrained("thewh1teagle/bert-char-he", trust_remote_code=True)
 ```
 
 ## Quick Start
 
-```console
-# Split your Hebrew corpus
-./scripts/split_dataset.sh /path/to/hebrew.txt
+```python
+from transformers import AutoModelForMaskedLM, AutoTokenizer
+import torch
 
-# Train
-./scripts/train_scratch.sh
+tokenizer = AutoTokenizer.from_pretrained("thewh1teagle/bert-char-he")
+model = AutoModelForMaskedLM.from_pretrained("thewh1teagle/bert-char-he", trust_remote_code=True)
+model.eval()
 
-# Inference
-uv run src/infer.py --checkpoint outputs/bert-char-he/checkpoint-6500 --text "ש[MASK]ום ע[MASK]לם"
+sentence = "של[MASK]ם עול[MASK]"  # שלום עולם with two masked characters
+
+inputs = tokenizer(sentence, return_tensors="pt")
+with torch.no_grad():
+    logits = model(**inputs).logits
+
+predicted = logits.argmax(-1)
+input_ids = inputs["input_ids"].clone()
+input_ids[input_ids == tokenizer.mask_token_id] = predicted[input_ids == tokenizer.mask_token_id]
+print(tokenizer.decode(input_ids[0], skip_special_tokens=True))  # שלום עולם
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/TRAINING.md](docs/TRAINING.md) for details.

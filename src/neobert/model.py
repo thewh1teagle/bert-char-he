@@ -334,11 +334,11 @@ class NeoBERTLMHead(NeoBERTPreTrainedModel):
         max_seqlen: int = None,
         cu_seqlens: torch.Tensor = None,
         attention_mask: torch.Tensor = None,
+        labels: Optional[torch.Tensor] = None,
         output_hidden_states: bool = False,
         output_attentions: bool = False,
         **kwargs,
     ):
-
         output = self.model.forward(
             input_ids=input_ids,
             position_ids=position_ids,
@@ -350,10 +350,15 @@ class NeoBERTLMHead(NeoBERTPreTrainedModel):
         )
         logits = self.decoder(output.last_hidden_state)
 
+        loss = None
+        if labels is not None:
+            loss = CrossEntropyLoss()(logits.view(-1, self.config.vocab_size), labels.view(-1))
+
         return MaskedLMOutput(
+            loss=loss,
+            logits=logits,
             hidden_states=output.hidden_states if output_hidden_states else None,
             attentions=output.attentions if output_attentions else None,
-            logits=logits,
         )
 
 

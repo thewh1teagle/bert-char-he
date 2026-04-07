@@ -1,9 +1,7 @@
-"""Interactive masked-token inference for debugging the MLM model.
+"""Masked-token inference for debugging the MLM model.
 
 Example:
-    uv run src/infer.py --checkpoint outputs/bert-char-he-mlm/checkpoint-1000 --text "מ[MASK]של[MASK]"
-
-If no --text is given, reads lines from stdin.
+    uv run src/infer.py --checkpoint outputs/bert-char-he/checkpoint-9000
 """
 
 from __future__ import annotations
@@ -16,6 +14,8 @@ from transformers import PreTrainedTokenizerFast
 
 from model import build_model
 from tokenization import build_tokenizer
+
+EXAMPLE_TEXT = "של[MASK]ם עול[MASK]"
 
 
 def load_model(checkpoint: str):
@@ -48,7 +48,6 @@ def run(model, tokenizer: PreTrainedTokenizerFast, text: str, device: torch.devi
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str, required=True)
-    parser.add_argument("--text", type=str, default=None)
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -63,18 +62,7 @@ def main():
 
     device = torch.device(args.device)
     model = load_model(args.checkpoint).to(device)
-
-    if args.text:
-        run(model, tokenizer, args.text, device)
-    else:
-        print("Enter masked Hebrew text (Ctrl+C to quit):")
-        while True:
-            try:
-                text = input("> ")
-                if text.strip():
-                    run(model, tokenizer, text, device)
-            except KeyboardInterrupt:
-                break
+    run(model, tokenizer, EXAMPLE_TEXT, device)
 
 
 if __name__ == "__main__":
